@@ -21,3 +21,4 @@ Links
 
 * Radarsensor: Dopplerradar 24GHz, IPS-265 von innocent: `http://www.innosent.de/fileadmin/media/dokumente/datasheets/IPS-265.pdf` `https://www.innosent.de/radarsensoren/ips-series/ips-265/` NOTE: 5V input, IF-out -300 — +300mV. GIBTS LEIDER NICHT MEHR BEI CONRAD!
 
+* Alt Radarsensor: RSM2650 (bei Conrad), nahezu identisch in der Handhabung. `https://produktinfo.conrad.com/datenblaetter/500000-524999/506343-da-01-de-RADARBEWEGUNGSM__MOD__STEREO_4_75__5_25V.pdf`
