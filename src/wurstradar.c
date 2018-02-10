@@ -27,49 +27,44 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 
-#define LED_DISCO_GREEN_PORT GPIOD
-#define LED_DISCO_GREEN_PIN GPIO12
-
-#define USART_CONSOLE USART2
-
 int _write(int file, char *ptr, int len);
 
 static void clock_setup(void)
 {
-	rcc_clock_setup_hse_3v3(&rcc_hse_8mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
-	/* Enable GPIOD clock for LED & USARTs. */
-	rcc_periph_clock_enable(RCC_GPIOD);
+	// Setup pll and system clock to 168 MHz.
+	rcc_clock_setup_hse_3v3(&rcc_hse_25mhz_3v3[RCC_CLOCK_3V3_168MHZ]);
+
 	rcc_periph_clock_enable(RCC_GPIOA);
-
-	/* Enable clocks for USART2 and dac */
 	rcc_periph_clock_enable(RCC_USART2);
-	rcc_periph_clock_enable(RCC_DAC);
 
-	/* And ADC*/
 	rcc_periph_clock_enable(RCC_ADC1);
+	rcc_periph_clock_enable(RCC_ADC2);
+
+	rcc_periph_clock_enable(RCC_DAC);
+}
+
+static void led_setup(void)
+{
+	// Setup LED1 on PA8.
+	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
 static void usart_setup(void)
 {
-	/* Setup GPIO pins for USART2 transmit. */
+	// Setup USART ouput 115200baud 8N1 on pin PA2.
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
-
-	/* Setup USART2 TX pin as alternate function. */
 	gpio_set_af(GPIOA, GPIO_AF7, GPIO2);
-
-	usart_set_baudrate(USART_CONSOLE, 115200);
-	usart_set_databits(USART_CONSOLE, 8);
-	usart_set_stopbits(USART_CONSOLE, USART_STOPBITS_1);
-	usart_set_mode(USART_CONSOLE, USART_MODE_TX);
-	usart_set_parity(USART_CONSOLE, USART_PARITY_NONE);
-	usart_set_flow_control(USART_CONSOLE, USART_FLOWCONTROL_NONE);
-
-	/* Finally enable the USART. */
-	usart_enable(USART_CONSOLE);
+	usart_set_baudrate(USART2, 115200);
+	usart_set_databits(USART2, 8);
+	usart_set_stopbits(USART2, USART_STOPBITS_1);
+	usart_set_mode(USART2, USART_MODE_TX);
+	usart_set_parity(USART2, USART_PARITY_NONE);
+	usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
+	usart_enable(USART2);
 }
 
 /**
- * Use USART_CONSOLE as a console.
+ * Use USART2 as a console.
  * This is a syscall for newlib
  * @param file
  * @param ptr
@@ -83,9 +78,9 @@ int _write(int file, char *ptr, int len)
 	if (file == STDOUT_FILENO || file == STDERR_FILENO) {
 		for (i = 0; i < len; i++) {
 			if (ptr[i] == '\n') {
-				usart_send_blocking(USART_CONSOLE, '\r');
+				usart_send_blocking(USART2, '\r');
 			}
-			usart_send_blocking(USART_CONSOLE, ptr[i]);
+			usart_send_blocking(USART2, ptr[i]);
 		}
 		return i;
 	}
@@ -95,26 +90,46 @@ int _write(int file, char *ptr, int len)
 
 static void adc_setup(void)
 {
+	// Setup ADC1_IN0 on PA0 and ADC2_IN8 on PB0.
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
-	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO1);
+	gpio_mode_setup(GPIOB, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 
 	adc_power_off(ADC1);
+	adc_power_off(ADC2);
 	adc_disable_scan_mode(ADC1);
+	adc_disable_scan_mode(ADC2);
 	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_3CYC);
-
+	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_3CYC);
 	adc_power_on(ADC1);
-
+	adc_power_on(ADC2);
 }
 
 static void dac_setup(void)
 {
-	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO5);
-	dac_disable(CHANNEL_2);
-	dac_disable_waveform_generation(CHANNEL_2);
-	dac_enable(CHANNEL_2);
-	dac_set_trigger_source(DAC_CR_TSEL2_SW);
+	// Setup DAC output on PA4
+	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO4);
+	dac_disable(CHANNEL_1);
+	dac_disable_waveform_generation(CHANNEL_1);
+	dac_enable(CHANNEL_1);
+	dac_set_trigger_source(DAC_CR_TSEL1_SW);
 }
 
+static void platform_init(void)
+{
+	clock_setup();
+	led_setup();
+	usart_setup();
+	adc_setup();
+	dac_setup();
+}
+
+static void led_toggle(void)
+{
+	/* LED on/off */
+	gpio_toggle(GPIOA, GPIO8);
+}
+
+#if 0
 static uint16_t read_adc_naiive(uint8_t channel)
 {
 	uint8_t channel_array[16];
@@ -125,22 +140,22 @@ static uint16_t read_adc_naiive(uint8_t channel)
 	uint16_t reg16 = adc_read_regular(ADC1);
 	return reg16;
 }
+#endif
 
 int main(void)
 {
 	int i;
+#if 0
 	int j = 0;
-	clock_setup();
-	usart_setup();
-	printf("hi guys!\n");
-	adc_setup();
-	dac_setup();
+#endif
 
-	/* green led for ticking */
-	gpio_mode_setup(LED_DISCO_GREEN_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
-			LED_DISCO_GREEN_PIN);
+	platform_init();
+
+	printf("ETAGE5 WURSTRADAR\nbasic hardware initialized.\n");
 
 	while (1) {
+		led_toggle();
+#if 0
 		uint16_t input_adc0 = read_adc_naiive(0);
 		uint16_t target = input_adc0 / 2;
 		dac_load_data_buffer_single(target, RIGHT12, CHANNEL_2);
@@ -149,9 +164,8 @@ int main(void)
 		printf("tick: %d: adc0= %u, target adc1=%d, adc1=%d\n",
 			j++, input_adc0, target, input_adc1);
 
-		/* LED on/off */
-		gpio_toggle(LED_DISCO_GREEN_PORT, LED_DISCO_GREEN_PIN);
 
+#endif
 		for (i = 0; i < 1000000; i++) { /* Wait a bit. */
 			__asm__("NOP");
 		}

@@ -17,7 +17,7 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-BINARY = adc-dac-printf
+BINARY = wurstradar
 OPENCM3_DIR=../libopencm3
 DEVICE=STM32F407VG
 

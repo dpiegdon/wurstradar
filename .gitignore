@@ -1,0 +1,8 @@
+*.swp
+.*.swp
+.swp
+*.o
+*.elf
+*.map
+*.d
+generated.*.ld
