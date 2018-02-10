@@ -6,3 +6,4 @@
 *.map
 *.d
 generated.*.ld
+STM32Cube_FW_F4*

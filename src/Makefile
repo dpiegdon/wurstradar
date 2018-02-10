@@ -18,6 +18,8 @@
 ##
 
 BINARY = wurstradar
+OBJS = 
+
 OPENCM3_DIR=../libopencm3
 DEVICE=STM32F407VG
 
