@@ -161,10 +161,18 @@ static void dac_setup(void)
 {
 	// Setup DAC output on PA4
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO4);
+
 	dac_disable(CHANNEL_1);
+
 	dac_disable_waveform_generation(CHANNEL_1);
+
 	dac_enable(CHANNEL_1);
 	dac_set_trigger_source(DAC_CR_TSEL1_SW);
+}
+
+static void dac_output(uint16_t value)
+{
+	dac_load_data_buffer_single(value, LEFT12, CHANNEL_1);
 }
 
 static void nvic_setup(void)
@@ -186,6 +194,7 @@ static void platform_init(void)
 int main(void)
 {
 	uint64_t i;
+	uint16_t dov = 0;
 
 	platform_init();
 
@@ -200,6 +209,8 @@ int main(void)
 			__asm__("NOP");
 		}
 		printf("0x%08x\n", adcvalue);
+		dac_output(dov);
+		dov += 1024;
 	}
 
 	return 0;
