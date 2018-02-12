@@ -176,9 +176,9 @@ static void adc_setup(void)
 
 	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
 
-	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_32BIT);
-	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
-	//dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1));
+	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
+	//dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
+	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1));
 	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
 
 	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
@@ -278,6 +278,7 @@ int main(void)
 	printf("ETAGE5 WURSTRADAR\n\n");
 
 	adc_start_conversion_regular(ADC1);
+	adc_start_conversion_regular(ADC2);
 
 	while (1) {
 		if(waveform_ready) {
