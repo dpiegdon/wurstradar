@@ -120,18 +120,8 @@ static volatile int waveform_ready = 0;
 static void adc_setup(void)
 {
 	// Setup ADC1_IN0 on PA0 and ADC2_IN8 on PB0.
-	uint8_t adc1_channels[] = {
-		ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1,
-		ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1,
-		ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1,
-		ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1, ADC_CHANNEL1,
-	};
-	uint8_t adc2_channels[] = {
-		ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8,
-		ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8,
-		ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8,
-		ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8, ADC_CHANNEL8,
-	};
+	uint8_t adc1_channels[] = { ADC_CHANNEL1 };
+	uint8_t adc2_channels[] = { ADC_CHANNEL8 };
 
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 	gpio_mode_setup(GPIOB, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
@@ -139,8 +129,8 @@ static void adc_setup(void)
 	adc_power_off(ADC1);
 	adc_power_off(ADC2);
 
-	adc_enable_scan_mode(ADC1);
-	adc_enable_scan_mode(ADC2);
+	adc_disable_scan_mode(ADC1);
+	adc_disable_scan_mode(ADC2);
 
 	adc_disable_external_trigger_regular(ADC1);
 	adc_disable_external_trigger_regular(ADC2);
