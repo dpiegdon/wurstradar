@@ -209,9 +209,10 @@ void adc_isr(void)
 	pb6_toggle();
 	adc_sample_counter += 1;
 }
-#endif
 
 uint32_t dma_sample_counter = 0;
+#endif
+
 uint32_t dma_sample_todo = 0;
 void dma2_stream0_isr(void)
 {
@@ -224,9 +225,11 @@ void dma2_stream0_isr(void)
 		waveform_to_process = waveform1;
 	waveform_ready = 1;
 
+#ifdef DEBUG
 	dma_sample_counter = adc_sample_counter;
-	dma_sample_todo = DMA2_SNDTR(DMA_STREAM0);
 	adc_sample_counter = 0;
+#endif
+	dma_sample_todo = DMA2_SNDTR(DMA_STREAM0);
 }
 
 static void dac_setup(void)
@@ -264,8 +267,8 @@ static void process_waveform(void)
 	printf("\nbuffer:%p\n", waveform_to_process);
 #ifdef DEBUG
 	printf("adc csr: %08lx\n", adc_csr_flags);
-#endif
 	printf("got samples: %ld\n", dma_sample_counter);
+#endif
 	printf("todo: %ld\n", dma_sample_todo);
 	for(i = 0; i < 16; ++i)
 		printf(" %08lx\n", waveform_to_process[i]);
