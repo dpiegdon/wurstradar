@@ -1,4 +1,4 @@
-update=22/05/2015 07:44:53
+update=Tue 20 Feb 2018 10:53:42 PM UTC
 version=1
 last_client=kicad
 [general]
@@ -29,7 +29,7 @@ version=1
 NetIExt=net
 [eeschema]
 version=1
-LibDir=
+LibDir=kicad-modules/library
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -60,3 +60,13 @@ LibName26=opto
 LibName27=atmel
 LibName28=contrib
 LibName29=valves
+LibName30=kicad-modules/library/atmel_local
+LibName31=kicad-modules/library/irf
+LibName32=kicad-modules/library/linear_technology
+LibName33=kicad-modules/library/lsm
+LibName34=kicad-modules/library/nxp
+LibName35=kicad-modules/library/on_semiconductor
+LibName36=kicad-modules/library/st
+LibName37=kicad-modules/library/stm32l
+LibName38=kicad-modules/library/telit
+LibName39=kicad-modules/library/toshiba
