@@ -12,6 +12,8 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/iwdg.h>
 
+#include <CMSIS_5/CMSIS/DSP/Include/arm_math.h>
+#include <CMSIS_5/CMSIS/DSP/Include/arm_const_structs.h>
 
 #define DEBUG
 
