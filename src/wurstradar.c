@@ -298,6 +298,7 @@ static uint32_t perform_fft(uin32_t * waveform, const uin32_t len)
 	return len_to_config[i].len;
 }
 
+static uint16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
 	unsigned i;
@@ -310,6 +311,18 @@ static void process_waveform(void)
 	printf("todo: %ld\n", dma_sample_todo);
 	for(i = 0; i < 16; ++i)
 		printf(" %08lx\n", waveform_to_process[i]);
+
+	/* let's obtain magnitude squares of fft */
+	uin32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
+	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process,
+		waveform_magnitudes, processed_len);
+
+	/* now we need to find those local maxima inside the vector in an efficent
+	 * way.
+	 */
+	printf("fft mag:\n");
+	for(i = 0; i < 16; ++i)
+		printf(" %08lx\n", waveform_magnitudes[i]);
 }
 
 int main(void)
