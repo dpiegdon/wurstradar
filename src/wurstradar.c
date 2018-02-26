@@ -16,7 +16,7 @@
 #define DEBUG
 
 
-extern void initialise_monitor_handles(void);
+int _write(int file, char *ptr, int len);
 
 static void clock_setup(void)
 {
@@ -82,6 +82,31 @@ static void usart_setup(void)
 	usart_set_parity(USART2, USART_PARITY_NONE);
 	usart_set_flow_control(USART2, USART_FLOWCONTROL_NONE);
 	usart_enable(USART2);
+}
+
+/**
+ * Use USART2 as a console.
+ * This is a syscall for newlib
+ * @param file
+ * @param ptr
+ * @param len
+ * @return
+ */
+int _write(int file, char *ptr, int len)
+{
+	int i;
+
+	if (file == STDOUT_FILENO || file == STDERR_FILENO) {
+		for (i = 0; i < len; i++) {
+			if (ptr[i] == '\n') {
+				usart_send_blocking(USART2, '\r');
+			}
+			usart_send_blocking(USART2, ptr[i]);
+		}
+		return i;
+	}
+	errno = EIO;
+	return -1;
 }
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
@@ -232,7 +257,6 @@ static void platform_init(void)
 	usart_setup();
 	adc_setup();
 	dac_setup();
-        initialise_monitor_handles();
 }
 
 static void process_waveform(void)
