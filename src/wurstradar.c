@@ -126,6 +126,9 @@ static void adc_setup(void)
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 	gpio_mode_setup(GPIOB, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 
+	// we are going to use DMA transfers via DMA2 Stream 0 Channel 0
+	dma_disable_stream(DMA2, DMA_STREAM0);
+
 	adc_power_off(ADC1);
 	adc_power_off(ADC2);
 
@@ -170,27 +173,29 @@ static void adc_setup(void)
 
 	// Setup ADC1 DMA transfers via DMA2 Stream 0 Channel 0
 	dma_stream_reset(DMA2, DMA_STREAM0);
+
+	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
+//	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1));
+
+	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t) waveform1);
+	dma_set_memory_address_1(DMA2, DMA_STREAM0, (uint32_t) waveform2);
+	dma_set_initial_target(DMA2, DMA_STREAM0, 0);
+
+	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
+
 	dma_channel_select(DMA2, DMA_STREAM0, DMA_SxCR_CHSEL_0);
 	dma_set_priority(DMA2, DMA_STREAM0, DMA_SxCR_PL_MEDIUM);
 
 	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
-
-	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
-	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
-	/* dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1)); */
-	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
-
-	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
-	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t) waveform1);
-	dma_set_memory_address_1(DMA2, DMA_STREAM0, (uint32_t) waveform2);
-	dma_set_initial_target(DMA2, DMA_STREAM0, 0);
+	dma_disable_peripheral_increment_mode(DMA2, DMA_STREAM0);
 	dma_enable_memory_increment_mode(DMA2, DMA_STREAM0);
-
+	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
+	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
 	dma_enable_circular_mode(DMA2, DMA_STREAM0);
 	dma_enable_double_buffer_mode(DMA2, DMA_STREAM0);
 
-	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
 	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM0);
+	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
 
 	dma_enable_stream(DMA2, DMA_STREAM0);
 
