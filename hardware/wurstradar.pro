@@ -1,4 +1,4 @@
-update=Tue 20 Feb 2018 10:53:42 PM UTC
+update=Thu 22 Feb 2018 06:40:42 PM UTC
 version=1
 last_client=kicad
 [general]
@@ -70,3 +70,13 @@ LibName36=kicad-modules/library/st
 LibName37=kicad-modules/library/stm32l
 LibName38=kicad-modules/library/telit
 LibName39=kicad-modules/library/toshiba
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceAjustPassiveValues=0
+LabSize=60
+ERC_TestSimilarLabels=1
