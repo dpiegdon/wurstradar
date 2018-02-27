@@ -143,8 +143,8 @@ static void adc_setup(void)
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
 	adc_set_resolution(ADC2, ADC_CR1_RES_12BIT);
 
-	adc_set_left_aligned(ADC1);
-	adc_set_left_aligned(ADC2);
+	adc_set_right_aligned(ADC1);
+	adc_set_right_aligned(ADC2);
 
 	adc_set_regular_sequence(ADC1, ARRAY_SIZE(adc1_channels), adc1_channels);
 	adc_set_regular_sequence(ADC2, ARRAY_SIZE(adc2_channels), adc2_channels);
