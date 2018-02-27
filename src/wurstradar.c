@@ -55,8 +55,9 @@ static void led_setup(void)
 	gpio_mode_setup(GPIOA, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
 
 	// additional GPIOs for debugging output
-	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO6);
+	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO13);
 	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO14);
+	gpio_mode_setup(GPIOB, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO15);
 }
 
 static void led_toggle(void)
@@ -65,14 +66,19 @@ static void led_toggle(void)
 	gpio_toggle(GPIOA, GPIO8);
 }
 
-static void pb6_toggle(void)
+static void pb13_toggle(void)
 {
-	gpio_toggle(GPIOB, GPIO6);
+	gpio_toggle(GPIOB, GPIO13);
 }
 
 static void pb14_toggle(void)
 {
 	gpio_toggle(GPIOB, GPIO14);
+}
+
+static void pb15_toggle(void)
+{
+	gpio_toggle(GPIOB, GPIO15);
 }
 
 static void usart_setup(void)
@@ -222,7 +228,7 @@ void adc_isr(void)
 {
 	adc_csr_flags = ADC_CSR;
 	ADC_SR(ADC1) = 0;
-	pb6_toggle();
+	pb15_toggle();
 	adc_sample_counter += 1;
 }
 
