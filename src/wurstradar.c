@@ -193,8 +193,7 @@ static void adc_setup(void)
 
 	// Setup dual multi mode for ADC1+ADC2 with DMA
 	ADC_CCR &= (~ADC_CCR_MULTI_MASK) | (~ADC_CCR_DMA_MASK);
-	ADC_CCR |= ADC_CCR_MULTI_DUAL_REGULAR_SIMUL | ADC_CCR_DELAY_5ADCCLK | ADC_CCR_DMA_MODE_2;
-	// FIXME: ADC_CCR_DELAY_5ADCCLK ???
+	ADC_CCR |= ADC_CCR_MULTI_DUAL_REGULAR_SIMUL | ADC_CCR_DMA_MODE_2;
 
 	// enable automatic DMA requests after conversion
 	adc_enable_dma(ADC1);
