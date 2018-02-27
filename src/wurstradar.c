@@ -192,7 +192,7 @@ void dma_setup(void)
 	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
 	dma_disable_peripheral_increment_mode(DMA2, DMA_STREAM0);
 	dma_enable_memory_increment_mode(DMA2, DMA_STREAM0);
-	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
+	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_32BIT);
 	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
 	dma_enable_circular_mode(DMA2, DMA_STREAM0);
 	dma_enable_double_buffer_mode(DMA2, DMA_STREAM0);
