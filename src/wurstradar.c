@@ -126,9 +126,6 @@ static void adc_setup(void)
 	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 	gpio_mode_setup(GPIOB, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO0);
 
-	// we are going to use DMA transfers via DMA2 Stream 0 Channel 0
-	dma_disable_stream(DMA2, DMA_STREAM0);
-
 	adc_power_off(ADC1);
 	adc_power_off(ADC2);
 
@@ -171,6 +168,12 @@ static void adc_setup(void)
 	adc_enable_eoc_interrupt(ADC1);
 #endif
 
+	adc_power_on(ADC1);
+	adc_power_on(ADC2);
+}
+
+void dma_setup(void)
+{
 	// Setup ADC1 DMA transfers via DMA2 Stream 0 Channel 0
 	dma_stream_reset(DMA2, DMA_STREAM0);
 
@@ -198,9 +201,6 @@ static void adc_setup(void)
 	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
 
 	dma_enable_stream(DMA2, DMA_STREAM0);
-
-	adc_power_on(ADC1);
-	adc_power_on(ADC2);
 }
 
 #ifdef DEBUG
@@ -260,6 +260,7 @@ static void platform_init(void)
 	wdt_setup();
 	led_setup();
 	usart_setup();
+	dma_setup();
 	adc_setup();
 	dac_setup();
 }
