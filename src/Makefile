@@ -21,7 +21,7 @@ BINARY = wurstradar
 OBJS = 
 
 OPENCM3_DIR=../libopencm3
-DEVICE=STM32F407VG
+DEVICE=STM32F415RG
 
 include ../libopencm3.target.mk
 
