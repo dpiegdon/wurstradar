@@ -11,6 +11,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/iwdg.h>
+#include <libopencm3/stm32/timer.h>
 
 #include <arm_math.h>
 #include <arm_const_structs.h>
@@ -32,6 +33,7 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_ADC1);
 	rcc_periph_clock_enable(RCC_DMA2);
 
+	rcc_periph_clock_enable(RCC_TIM4);
 	rcc_periph_clock_enable(RCC_DAC);
 }
 
@@ -74,10 +76,10 @@ static void pb14_toggle(void)
 
 static void usart_setup(void)
 {
-	// Setup USART ouput 2Mbaud 8N1 on pin PA2.
+	// Setup USART ouput on pin PA2.
 	gpio_mode_setup(GPIOA, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO2);
 	gpio_set_af(GPIOA, GPIO_AF7, GPIO2);
-	usart_set_baudrate(USART2, 2000000);
+	usart_set_baudrate(USART2, 921600);
 	usart_set_databits(USART2, 8);
 	usart_set_stopbits(USART2, USART_STOPBITS_1);
 	usart_set_mode(USART2, USART_MODE_TX);
@@ -246,22 +248,54 @@ void dma2_stream0_isr(void)
 	dma_sample_todo = DMA2_SNDTR(DMA_STREAM0);
 }
 
-static void dac_setup(void)
+static void pwm_setup(void)
 {
-	// Setup DAC output on PA4
-	gpio_mode_setup(GPIOA, GPIO_MODE_ANALOG, GPIO_PUPD_NONE, GPIO4);
+	// configure PWM on TIM4CHAN1 on PB6
+	// frequency is ~75.37Hz
 
-	dac_disable(CHANNEL_1);
+	// https://github.com/1Bitsy/1bitsy-examples/blob/master/examples/1bitsy/pwmblink/pwmblink.c
 
-	dac_disable_waveform_generation(CHANNEL_1);
+	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
+	gpio_set_af(GPIOB, GPIO_AF2, GPIO6);
 
-	dac_enable(CHANNEL_1);
-	dac_set_trigger_source(DAC_CR_TSEL1_SW);
+	timer_reset(TIM4);
+	// Timer global mode:
+	// - Sampling clock divider 1
+	// - Alignment edge
+	// - Direction up
+	timer_set_mode(TIM4, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
+	// Prescaler: divide the input clock (half of the core clock aka 84MHz) by 16)
+	timer_set_prescaler(TIM4, 16);
+	// Enable preload.
+	timer_disable_preload(TIM4);
+	// Continous mode.
+	timer_continuous_mode(TIM4);
+	// Period (80Hz). (84MHz/16/65535)
+	timer_set_period(TIM4, 0xFFFF);
+	// Disable outputs.
+	timer_disable_oc_output(TIM4, TIM_OC1);
+	timer_disable_oc_output(TIM4, TIM_OC2);
+	timer_disable_oc_output(TIM4, TIM_OC3);
+	timer_disable_oc_output(TIM4, TIM_OC4);
+	// OC1 configuration
+	// Configure global mode of line 1.
+	timer_disable_oc_clear(TIM4, TIM_OC1);
+	timer_enable_oc_preload(TIM4, TIM_OC1);
+	timer_set_oc_slow_mode(TIM4, TIM_OC1);
+	timer_set_oc_mode(TIM4, TIM_OC1, TIM_OCM_PWM1);
+	timer_set_oc_polarity_high(TIM4, TIM_OC1);
+	// Set the capture compare value for OC1 to half of the period to achieve 50% duty cycle.
+	timer_set_oc_value(TIM4, TIM_OC1, 0xFFFF/2);
+	timer_enable_oc_output(TIM4, TIM_OC1);
+	timer_enable_preload(TIM4);
+	// Counter enable.
+	timer_enable_counter(TIM4);
 }
 
-static void dac_output(uint16_t value)
+static void pwm_output(uint16_t value)
 {
-	dac_load_data_buffer_single(value, LEFT12, CHANNEL_1);
+	// set duty cycle
+	timer_set_oc_value(TIM4, TIM_OC1, value);
 }
 
 static void platform_init(void)
@@ -271,7 +305,7 @@ static void platform_init(void)
 	led_setup();
 	usart_setup();
 	adc_setup();
-	dac_setup();
+	pwm_setup();
 }
 
 struct fft_length_config_entry {
