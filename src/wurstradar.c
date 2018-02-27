@@ -117,6 +117,41 @@ static uint32_t waveform2[WAVESIZE];
 static uint32_t * waveform_to_process = NULL;
 static volatile int waveform_ready = 0;
 
+void dma_setup(void)
+{
+	// Setup ADC1 DMA transfers via DMA2 Stream 0 Channel 0
+	dma_stream_reset(DMA2, DMA_STREAM0);
+	dma_channel_select(DMA2, DMA_STREAM0, DMA_SxCR_CHSEL_0);
+	dma_set_priority(DMA2, DMA_STREAM0, DMA_SxCR_PL_MEDIUM);
+
+	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
+
+#define USE_DUAL
+#ifdef USE_DUAL
+	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_32BIT);
+	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR); // requires 32 bit
+#else
+//	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
+//	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1)); // requires 16 bit
+#endif
+	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
+
+	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
+	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t) waveform1);
+	dma_set_memory_address_1(DMA2, DMA_STREAM0, (uint32_t) waveform2);
+	dma_set_initial_target(DMA2, DMA_STREAM0, 0);
+	dma_disable_peripheral_increment_mode(DMA2, DMA_STREAM0);
+	dma_enable_memory_increment_mode(DMA2, DMA_STREAM0);
+
+	dma_enable_circular_mode(DMA2, DMA_STREAM0);
+	dma_enable_double_buffer_mode(DMA2, DMA_STREAM0);
+
+	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM0);
+	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
+
+	dma_enable_stream(DMA2, DMA_STREAM0);
+}
+
 static void adc_setup(void)
 {
 	// Setup ADC1_IN0 on PA0 and ADC2_IN8 on PB0.
@@ -137,14 +172,14 @@ static void adc_setup(void)
 
 	adc_set_clk_prescale(ADC_CCR_ADCPRE_BY8);
 
-	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_3CYC);
-	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_3CYC);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_28CYC);
+	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_28CYC);
 
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
 	adc_set_resolution(ADC2, ADC_CR1_RES_12BIT);
 
-	adc_set_right_aligned(ADC1);
-	adc_set_right_aligned(ADC2);
+	adc_set_left_aligned(ADC1);
+	adc_set_left_aligned(ADC2);
 
 	adc_set_regular_sequence(ADC1, ARRAY_SIZE(adc1_channels), adc1_channels);
 	adc_set_regular_sequence(ADC2, ARRAY_SIZE(adc2_channels), adc2_channels);
@@ -153,7 +188,9 @@ static void adc_setup(void)
 	adc_set_continuous_conversion_mode(ADC2);
 
 	// Setup dual multi mode for ADC1+ADC2 with DMA
-	adc_set_multi_mode(ADC_CCR_DMA_MODE_2 | ADC_CCR_DELAY_5ADCCLK | ADC_CCR_MULTI_DUAL_REGULAR_SIMUL);
+	ADC_CCR &= (~ADC_CCR_MULTI_MASK) | (~ADC_CCR_DMA_MASK);
+	ADC_CCR |= ADC_CCR_MULTI_DUAL_REGULAR_SIMUL | ADC_CCR_DELAY_5ADCCLK | ADC_CCR_DMA_MODE_2;
+	// FIXME: ADC_CCR_DELAY_5ADCCLK ???
 
 	// enable automatic DMA requests after conversion
 	adc_enable_dma(ADC1);
@@ -168,39 +205,10 @@ static void adc_setup(void)
 	adc_enable_eoc_interrupt(ADC1);
 #endif
 
+	dma_setup();
+
 	adc_power_on(ADC1);
 	adc_power_on(ADC2);
-}
-
-void dma_setup(void)
-{
-	// Setup ADC1 DMA transfers via DMA2 Stream 0 Channel 0
-	dma_stream_reset(DMA2, DMA_STREAM0);
-
-	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
-//	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1));
-
-	dma_set_memory_address(DMA2, DMA_STREAM0, (uint32_t) waveform1);
-	dma_set_memory_address_1(DMA2, DMA_STREAM0, (uint32_t) waveform2);
-	dma_set_initial_target(DMA2, DMA_STREAM0, 0);
-
-	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
-
-	dma_channel_select(DMA2, DMA_STREAM0, DMA_SxCR_CHSEL_0);
-	dma_set_priority(DMA2, DMA_STREAM0, DMA_SxCR_PL_MEDIUM);
-
-	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
-	dma_disable_peripheral_increment_mode(DMA2, DMA_STREAM0);
-	dma_enable_memory_increment_mode(DMA2, DMA_STREAM0);
-	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_32BIT);
-	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
-	dma_enable_circular_mode(DMA2, DMA_STREAM0);
-	dma_enable_double_buffer_mode(DMA2, DMA_STREAM0);
-
-	dma_enable_transfer_complete_interrupt(DMA2, DMA_STREAM0);
-	nvic_enable_irq(NVIC_DMA2_STREAM0_IRQ);
-
-	dma_enable_stream(DMA2, DMA_STREAM0);
 }
 
 #ifdef DEBUG
@@ -260,7 +268,6 @@ static void platform_init(void)
 	wdt_setup();
 	led_setup();
 	usart_setup();
-	dma_setup();
 	adc_setup();
 	dac_setup();
 }
