@@ -153,7 +153,7 @@ static void adc_setup(void)
 	adc_set_continuous_conversion_mode(ADC2);
 
 	// Setup dual multi mode for ADC1+ADC2 with DMA
-	adc_set_multi_mode(ADC_CCR_MULTI_DUAL_REGULAR_SIMUL);
+	adc_set_multi_mode(ADC_CCR_DMA_MODE_2 | ADC_CCR_DELAY_5ADCCLK | ADC_CCR_MULTI_DUAL_REGULAR_SIMUL);
 
 	// enable automatic DMA requests after conversion
 	adc_enable_dma(ADC1);
