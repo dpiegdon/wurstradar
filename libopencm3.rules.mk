@@ -136,7 +136,7 @@ endif
 # Used libraries
 
 LDLIBS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
-LDLIBS		+= -L$(OPENCM3_DIR)/../CMSIS_5/CMSIS/Lib/GCC -larm_cortex_M4lf_math
+LDLIBS		+= -L$(OPENCM3_DIR)/../CMSIS_5/CMSIS/Lib/GCC -larm_cortexM4lf_math
 
 ###############################################################################
 ###############################################################################

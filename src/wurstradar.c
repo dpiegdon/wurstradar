@@ -12,8 +12,8 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/iwdg.h>
 
-#include <CMSIS_5/CMSIS/DSP/Include/arm_math.h>
-#include <CMSIS_5/CMSIS/DSP/Include/arm_const_structs.h>
+#include <arm_math.h>
+#include <arm_const_structs.h>
 
 #define DEBUG
 
@@ -119,7 +119,7 @@ static uint32_t waveform2[WAVESIZE];
 static uint32_t * waveform_to_process = NULL;
 static volatile int waveform_ready = 0;
 
-void dma_setup(void)
+static void dma_setup(void)
 {
 	// Setup ADC1 DMA transfers via DMA2 Stream 0 Channel 0
 	dma_stream_reset(DMA2, DMA_STREAM0);
@@ -274,28 +274,32 @@ static void platform_init(void)
 	dac_setup();
 }
 
-static uint32_t perform_fft(uin32_t * waveform, const uin32_t len)
+struct fft_length_config_entry {
+	uint32_t len;
+	const arm_cfft_instance_q15 * config;
+};
+
+static const struct fft_length_config_entry fft_length_config[] = {
+	{ .len = 16,	.config = &arm_cfft_sR_q15_len16   },
+	{ .len = 32,	.config = &arm_cfft_sR_q15_len32   },
+	{ .len = 64,	.config = &arm_cfft_sR_q15_len64   },
+	{ .len = 128,	.config = &arm_cfft_sR_q15_len128  },
+	{ .len = 256,	.config = &arm_cfft_sR_q15_len256  },
+	{ .len = 512,	.config = &arm_cfft_sR_q15_len512  },
+	{ .len = 1024,	.config = &arm_cfft_sR_q15_len1024 },
+	{ .len = 2048,	.config = &arm_cfft_sR_q15_len2048 },
+	{ .len = 4096,	.config = &arm_cfft_sR_q15_len4096 }
+};
+
+static uint32_t perform_fft(uint32_t * waveform, const uint32_t len)
 {
 	/* CMSIS DSP FFT requires power-of-two lenghts.
 	 * Hence, we create a LUT to select the correct initializer from */
-	static const struct {
-		uint32_t len;
-		arm_cfft_instance_q15* config;
-	} len_to_config[] = {
-		{16, arm_cfft_sR_q15_len16},
-		{32, arm_cfft_sR_q15_len32},
-		{64, arm_cfft_sR_q15_len64},
-		{128, arm_cfft_sR_q15_len128},
-		{256, arm_cfft_sR_q15_len256},
-		{512, arm_cfft_sR_q15_len512},
-		{1024, arm_cfft_sR_q15_len1024},
-		{2048, arm_cfft_sR_q15_len2048},
-		{4096, arm_cfft_sR_q15_len4096}
-	};
 
-	uint32_t i = 0;
-	for(; len_to_config[i].len < len && len <= 4096; ++i);
-	arm_cfft_instance_q15* fft_config = len_to_config[i].config;
+	uint32_t i;
+
+	for(i = 0; fft_length_config[i].len < len && len <= 4096; ++i);
+	const arm_cfft_instance_q15 * fft_config = fft_length_config[i].config;
 
 	/* I understand waveform1/2 should have I and Q samples interleaved inside
 	 * each 32bit word once the ADC/DMA contraption is working with double-
@@ -307,10 +311,10 @@ static uint32_t perform_fft(uin32_t * waveform, const uin32_t len)
 	 */
 	arm_cfft_q15(fft_config, (q15_t*)waveform, 0, 0);
 
-	return len_to_config[i].len;
+	return fft_length_config[i].len;
 }
 
-static uint16_t waveform_magnitudes[WAVESIZE];
+static int16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
 	unsigned i;
@@ -325,16 +329,15 @@ static void process_waveform(void)
 		printf(" %08lx\n", waveform_to_process[i]);
 
 	/* let's obtain magnitude squares of fft */
-	uin32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
-	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process,
-		waveform_magnitudes, processed_len);
+	uint32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
+	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, processed_len);
 
 	/* now we need to find those local maxima inside the vector in an efficent
 	 * way.
 	 */
 	printf("fft mag:\n");
 	for(i = 0; i < 16; ++i)
-		printf(" %08lx\n", waveform_magnitudes[i]);
+		printf(" %08x\n", waveform_magnitudes[i]);
 }
 
 int main(void)

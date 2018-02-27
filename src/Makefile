@@ -21,7 +21,12 @@ BINARY = wurstradar
 OBJS = 
 
 OPENCM3_DIR=../libopencm3
+CMSIS_DIR=../CMSIS_5
 DEVICE=STM32F415RG
+DEFS += -I../CMSIS_5/CMSIS/Core/Include/
+DEFS += -I../CMSIS_5/CMSIS/DSP/Include/
+DEFS += -DARM_MATH_CM4
+DEFS += -D__FPU_PRESENT=1
 
 include ../libopencm3.target.mk
 
