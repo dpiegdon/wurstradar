@@ -12,6 +12,8 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/stm32/iwdg.h>
 
+#include <CMSIS_5/CMSIS/DSP/Include/arm_math.h>
+#include <CMSIS_5/CMSIS/DSP/Include/arm_const_structs.h>
 
 #define DEBUG
 
@@ -272,6 +274,43 @@ static void platform_init(void)
 	dac_setup();
 }
 
+static uint32_t perform_fft(uin32_t * waveform, const uin32_t len)
+{
+	/* CMSIS DSP FFT requires power-of-two lenghts.
+	 * Hence, we create a LUT to select the correct initializer from */
+	static const struct {
+		uint32_t len;
+		arm_cfft_instance_q15* config;
+	} len_to_config[] = {
+		{16, arm_cfft_sR_q15_len16},
+		{32, arm_cfft_sR_q15_len32},
+		{64, arm_cfft_sR_q15_len64},
+		{128, arm_cfft_sR_q15_len128},
+		{256, arm_cfft_sR_q15_len256},
+		{512, arm_cfft_sR_q15_len512},
+		{1024, arm_cfft_sR_q15_len1024},
+		{2048, arm_cfft_sR_q15_len2048},
+		{4096, arm_cfft_sR_q15_len4096}
+	};
+
+	uint32_t i = 0;
+	for(; len_to_config[i].len < len && len <= 4096; ++i);
+	arm_cfft_instance_q15* fft_config = len_to_config[i].config;
+
+	/* I understand waveform1/2 should have I and Q samples interleaved inside
+	 * each 32bit word once the ADC/DMA contraption is working with double-
+	 * buffering enabled.
+	 *
+	 * The CMSIS DSP FFT thingy requires just this - how convenient.
+	 * Thus, we may reinterprete those as little-endian int16_t and pass those
+	 * onto cfft function.
+	 */
+	arm_cfft_q15(fft_config, (q15_t*)waveform, 0, 0);
+
+	return len_to_config[i].len;
+}
+
+static uint16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
 	unsigned i;
@@ -284,6 +323,18 @@ static void process_waveform(void)
 	printf("todo: %ld\n", dma_sample_todo);
 	for(i = 0; i < 16; ++i)
 		printf(" %08lx\n", waveform_to_process[i]);
+
+	/* let's obtain magnitude squares of fft */
+	uin32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
+	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process,
+		waveform_magnitudes, processed_len);
+
+	/* now we need to find those local maxima inside the vector in an efficent
+	 * way.
+	 */
+	printf("fft mag:\n");
+	for(i = 0; i < 16; ++i)
+		printf(" %08lx\n", waveform_magnitudes[i]);
 }
 
 int main(void)

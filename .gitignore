@@ -8,3 +8,4 @@
 *.bak
 generated.*.ld
 STM32Cube_FW_F4*
+tags
