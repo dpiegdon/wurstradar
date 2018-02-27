@@ -137,8 +137,8 @@ static void adc_setup(void)
 
 	adc_set_clk_prescale(ADC_CCR_ADCPRE_BY8);
 
-	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_28CYC);
-	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_28CYC);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_3CYC);
+	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_3CYC);
 
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
 	adc_set_resolution(ADC2, ADC_CR1_RES_12BIT);
