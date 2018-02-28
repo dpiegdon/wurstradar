@@ -16,9 +16,6 @@
 #include <arm_math.h>
 #include <arm_const_structs.h>
 
-#define DEBUG
-
-
 int _write(int file, char *ptr, int len);
 
 static void clock_setup(void)
@@ -209,37 +206,19 @@ static void adc_setup(void)
 	// configured for DMA. needed to support circular buffers
 	adc_set_dma_continue(ADC1);
 
-#ifdef DEBUG
-	adc_eoc_after_each(ADC1);
-	nvic_enable_irq(NVIC_ADC_IRQ);
-	adc_enable_eoc_interrupt(ADC1);
-#endif
-
 	dma_setup();
 
 	adc_power_on(ADC1);
 	adc_power_on(ADC2);
 }
 
-#ifdef DEBUG
-uint32_t adc_sample_counter = 0;
-uint32_t adc_csr_flags = 0;
-void adc_isr(void)
-{
-	adc_csr_flags = ADC_CSR;
-	ADC_SR(ADC1) = 0;
-	pb15_toggle();
-	adc_sample_counter += 1;
-}
-
-uint32_t dma_sample_counter = 0;
-#endif
-
 uint32_t dma_sample_todo = 0;
 void dma2_stream0_isr(void)
 {
 	dma_clear_interrupt_flags(DMA2, DMA_STREAM0, DMA_TCIF);
-	pb14_toggle();
+	pb13_toggle();
+
+	dma_sample_todo = DMA2_SNDTR(DMA_STREAM0);
 
 	if(0 == dma_get_target(DMA2, DMA_STREAM0))
 		waveform_to_process = waveform2;
@@ -247,11 +226,6 @@ void dma2_stream0_isr(void)
 		waveform_to_process = waveform1;
 	waveform_ready = 1;
 
-#ifdef DEBUG
-	dma_sample_counter = adc_sample_counter;
-	adc_sample_counter = 0;
-#endif
-	dma_sample_todo = DMA2_SNDTR(DMA_STREAM0);
 }
 
 static void pwm_setup(void)
@@ -338,7 +312,8 @@ static uint32_t perform_fft(uint32_t * waveform, const uint32_t len)
 
 	uint32_t i;
 
-	for(i = 0; fft_length_config[i].len < len && len <= 4096; ++i);
+	for(i = 0; fft_length_config[i].len < len && len < ARRAY_SIZE(fft_length_config); ++i);
+
 	const arm_cfft_instance_q15 * fft_config = fft_length_config[i].config;
 
 	/* I understand waveform1/2 should have I and Q samples interleaved inside
@@ -357,16 +332,12 @@ static uint32_t perform_fft(uint32_t * waveform, const uint32_t len)
 static int16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
-	unsigned i;
-
-	printf("\nbuffer:%p\n", waveform_to_process);
 #ifdef DEBUG
-	printf("adc csr: %08lx\n", adc_csr_flags);
-	printf("got samples: %ld\n", dma_sample_counter);
-#endif
-	printf("todo: %ld\n", dma_sample_todo);
+	unsigned i;
+	printf("fft done %lu 16raw,mag:\n", dma_sample_todo);
 	for(i = 0; i < 16; ++i)
 		printf(" %08lx\n", waveform_to_process[i]);
+#endif
 
 	/* let's obtain magnitude squares of fft */
 	uint32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
@@ -375,9 +346,12 @@ static void process_waveform(void)
 	/* now we need to find those local maxima inside the vector in an efficent
 	 * way.
 	 */
-	printf("fft mag:\n");
-	for(i = 0; i < 16; ++i)
-		printf(" %08x\n", waveform_magnitudes[i]);
+
+	// FIXME
+
+
+
+	pwm_output(0);
 }
 
 int main(void)
@@ -391,10 +365,14 @@ int main(void)
 
 	while (1) {
 		if(waveform_ready) {
+			pb13_toggle();
+			pb14_toggle();
 			waveform_ready = 0;
 			wdt_trigger();
-			led_toggle();
 			process_waveform();
+			pb14_toggle();
+			pb15_toggle();
+			led_toggle();
 		}
 	}
 
