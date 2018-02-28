@@ -227,7 +227,7 @@ void dma2_stream0_isr(void)
 static void pwm_setup(void)
 {
 	// configure PWM on TIM4CHAN1 on PB6
-	// frequency is ~75.37Hz
+	// frequency is ~143Hz (should be ~160...)
 
 	// https://github.com/1Bitsy/1bitsy-examples/blob/master/examples/1bitsy/pwmblink/pwmblink.c
 
@@ -241,12 +241,12 @@ static void pwm_setup(void)
 	// - Direction up
 	timer_set_mode(TIM4, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
 	// Prescaler: divide the input clock (half of the core clock aka 84MHz) by 16)
-	timer_set_prescaler(TIM4, 16);
+	timer_set_prescaler(TIM4, 8);
 	// Enable preload.
 	timer_disable_preload(TIM4);
 	// Continous mode.
 	timer_continuous_mode(TIM4);
-	// Period (~80Hz). (84MHz/16/65535)
+	// Period (~160Hz). (84MHz/8/65535)
 	timer_set_period(TIM4, 0xFFFF);
 	// Disable outputs.
 	timer_disable_oc_output(TIM4, TIM_OC1);
