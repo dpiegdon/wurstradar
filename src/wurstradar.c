@@ -134,14 +134,8 @@ static void dma_setup(void)
 
 	dma_set_transfer_mode(DMA2, DMA_STREAM0, DMA_SxCR_DIR_PERIPHERAL_TO_MEM);
 
-#define USE_DUAL
-#ifdef USE_DUAL
 	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_32BIT);
-	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR); // requires 32 bit
-#else
-//	dma_set_peripheral_size(DMA2, DMA_STREAM0, DMA_SxCR_PSIZE_16BIT);
-//	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_DR(ADC1)); // requires 16 bit
-#endif
+	dma_set_peripheral_address(DMA2, DMA_STREAM0, (uint32_t) &ADC_CDR);
 	dma_set_number_of_data(DMA2, DMA_STREAM0, WAVESIZE);
 
 	dma_set_memory_size(DMA2, DMA_STREAM0, DMA_SxCR_MSIZE_32BIT);
@@ -250,7 +244,7 @@ static void pwm_setup(void)
 	timer_disable_preload(TIM4);
 	// Continous mode.
 	timer_continuous_mode(TIM4);
-	// Period (80Hz). (84MHz/16/65535)
+	// Period (~80Hz). (84MHz/16/65535)
 	timer_set_period(TIM4, 0xFFFF);
 	// Disable outputs.
 	timer_disable_oc_output(TIM4, TIM_OC1);
