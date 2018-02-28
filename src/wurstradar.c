@@ -158,6 +158,7 @@ static void dma_setup(void)
 static void adc_setup(void)
 {
 	// Setup ADC1_IN0 on PA0 and ADC2_IN8 on PB0.
+	// sampling at ~42688 SPS.
 	uint8_t adc1_channels[] = { ADC_CHANNEL0 };
 	uint8_t adc2_channels[] = { ADC_CHANNEL8 };
 
@@ -173,10 +174,10 @@ static void adc_setup(void)
 	adc_disable_external_trigger_regular(ADC1);
 	adc_disable_external_trigger_regular(ADC2);
 
-	adc_set_clk_prescale(ADC_CCR_ADCPRE_BY8);
+	adc_set_clk_prescale(ADC_CCR_ADCPRE_BY4);
 
-	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_28CYC);
-	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_28CYC);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_480CYC);
+	adc_set_sample_time_on_all_channels(ADC2, ADC_SMPR_SMP_480CYC);
 
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
 	adc_set_resolution(ADC2, ADC_CR1_RES_12BIT);
@@ -288,7 +289,7 @@ struct fft_length_config_entry {
 	const arm_cfft_instance_q15 * config;
 };
 
-static int16_t waveform_magnitudes[WAVESIZE];
+//static int16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
 	unsigned i;
@@ -301,7 +302,7 @@ static void process_waveform(void)
 #endif
 
 	assert(WAVESIZE == 4096);
-	arm_cfft_q15(&arm_cfft_sR_q15_len4096, (q15_t*)waveform_to_process, 0, 0);
+	arm_cfft_q15(&arm_cfft_sR_q15_len4096, (q15_t*)waveform_to_process, 0, 1);
 
 #if 0
 	printf("\nfft complex:\n");
@@ -309,18 +310,56 @@ static void process_waveform(void)
 		printf(" %08lx\n", waveform_to_process[i]);
 #endif
 
-	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, WAVESIZE);
+	//arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, WAVESIZE);
+
+	int16_t *wav = (int16_t*)waveform_to_process;
+	int16_t max_mag=0, max_index=0;
+	for(i = 4; i < WAVESIZE/2; ++i) { // omit DC (index 0-3)
+		int16_t mag = wav[2*i+0] * wav[2*i+0]  +  wav[2*i+1] * wav[2*i+1];
+		if(max_mag < mag) {
+			max_mag = mag;
+			max_index = i;
+		}
+	}
 
 #if 1
-	printf("\nfft mag:\n");
-	for(i = 0; i < PRINTCOUNT; ++i)
-		if(waveform_magnitudes[i] != 0)
-			printf(" %d: %04x\n", i, waveform_magnitudes[i]);
+	printf("PEAK: %4d: %04x\n", max_index, max_mag);
 #endif
 
-	// FIXME peakfinder
+	int16_t out = max_index;
+	if(max_mag < 0x10)
+		out = 0;
 
-	pwm_output(0);
+// XXX
+#define USE_45_ANGLE
+
+#ifdef USE_45_ANGLE
+	// watching at 45 degree to moving target!
+	// at 45 degree to the moving target, the doppler frequency is 31.4Hz / (km/h)
+
+	// each frequency bin in fft will be:
+	//   42688 SPS / 4096 bins = delta 10.421Hz
+	//   => 0.33km/h per freq. bin.
+	// at 240 km/h, the max frequency is 7850Hz
+	//   => bin 723 would be max speed of 240.
+	if(out > 723)
+		out = 723;
+	out *= 723;
+#else
+	// watching straight at moving target!
+	// the doppler frequency is 44.4Hz / (km/h)
+
+	// each frequency bin in fft will be:
+	//   42688 SPS / 4096 bins = delta 10.421Hz
+	//   => 0.23km/h per freq. bin.
+	// at 240 km/h, the max frequency is 7850Hz
+	//   => bin 1022 would be max speed of 250.
+	if(out > 1022)
+		out = 1022;
+	out *= 1022;
+#endif
+
+	pwm_output(out);
 }
 
 int main(void)
