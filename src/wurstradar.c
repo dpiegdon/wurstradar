@@ -314,6 +314,7 @@ static void process_waveform(void)
 
 	int16_t *wav = (int16_t*)waveform_to_process;
 	int16_t max_mag=0, max_index=0;
+	// NOTE: when direction of movement is required, use i=4..WAVESIZE-4 !
 	for(i = 4; i < WAVESIZE/2; ++i) { // omit DC (index 0-3)
 		int16_t mag = wav[2*i+0] * wav[2*i+0]  +  wav[2*i+1] * wav[2*i+1];
 		if(max_mag < mag) {
@@ -322,16 +323,17 @@ static void process_waveform(void)
 		}
 	}
 
-#if 1
-	printf("PEAK: %4d: %04x\n", max_index, max_mag);
-#endif
-
-	int16_t out = max_index;
+	unsigned int speed = max_index;
+	uint16_t out = max_index;
 	if(max_mag < 0x10)
 		out = 0;
 
-// XXX
-#define USE_45_ANGLE
+
+// duty cycle value that will show up as peak on analog out
+#define PEAK_OUTPUT 0xE150
+
+// calculate frequency for a moving target at 45 degree to us?
+//#define USE_45_ANGLE
 
 #ifdef USE_45_ANGLE
 	// watching at 45 degree to moving target!
@@ -340,11 +342,14 @@ static void process_waveform(void)
 	// each frequency bin in fft will be:
 	//   42688 SPS / 4096 bins = delta 10.421Hz
 	//   => 0.33km/h per freq. bin.
+	speed = (speed * 104) / 314;
+
 	// at 240 km/h, the max frequency is 7850Hz
 	//   => bin 723 would be max speed of 240.
 	if(out > 723)
 		out = 723;
-	out *= 723;
+	// scale to full duty cycle
+	out *= PEAK_OUTPUT/723;
 #else
 	// watching straight at moving target!
 	// the doppler frequency is 44.4Hz / (km/h)
@@ -352,11 +357,18 @@ static void process_waveform(void)
 	// each frequency bin in fft will be:
 	//   42688 SPS / 4096 bins = delta 10.421Hz
 	//   => 0.23km/h per freq. bin.
+	speed = (speed * 104) / 444;
+
 	// at 240 km/h, the max frequency is 7850Hz
 	//   => bin 1022 would be max speed of 250.
 	if(out > 1022)
 		out = 1022;
-	out *= 1022;
+	// scale to full duty cycle
+	out *= PEAK_OUTPUT/1022;
+#endif
+
+#if 1
+	printf("PEAK: bin %4d mag %04x speed %u km/h out 0x%04x\n", max_index, max_mag, speed, out);
 #endif
 
 	pwm_output(out);
