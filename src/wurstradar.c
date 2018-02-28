@@ -293,24 +293,9 @@ struct fft_length_config_entry {
 static void process_waveform(void)
 {
 	unsigned i;
-#define PRINTCOUNT 32
-
-#if 0
-	printf("\nwav:\n");
-	for(i = 0; i < PRINTCOUNT; ++i)
-		printf(" %08lx\n", waveform_to_process[i]);
-#endif
 
 	assert(WAVESIZE == 4096);
 	arm_cfft_q15(&arm_cfft_sR_q15_len4096, (q15_t*)waveform_to_process, 0, 1);
-
-#if 0
-	printf("\nfft complex:\n");
-	for(i = 0; i < PRINTCOUNT; ++i)
-		printf(" %08lx\n", waveform_to_process[i]);
-#endif
-
-	//arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, WAVESIZE);
 
 	int16_t *wav = (int16_t*)waveform_to_process;
 	int16_t max_mag=0, max_index=0;
@@ -330,42 +315,25 @@ static void process_waveform(void)
 
 
 // duty cycle value that will show up as peak on analog out
-#define PEAK_OUTPUT 0xE150
+//#define PEAK_OUTPUT 0xE150
+#define PEAK_OUTPUT 0xCFD0
 
-// calculate frequency for a moving target at 45 degree to us?
-//#define USE_45_ANGLE
-
-#ifdef USE_45_ANGLE
-	// watching at 45 degree to moving target!
-	// at 45 degree to the moving target, the doppler frequency is 31.4Hz / (km/h)
-
-	// each frequency bin in fft will be:
-	//   42688 SPS / 4096 bins = delta 10.421Hz
-	//   => 0.33km/h per freq. bin.
-	speed = (speed * 104) / 314;
-
-	// at 240 km/h, the max frequency is 7850Hz
-	//   => bin 723 would be max speed of 240.
-	if(out > 723)
-		out = 723;
-	// scale to full duty cycle
-	out *= PEAK_OUTPUT/723;
+#if 0
+//  calculations for 45 degree to moving target:
+#   define DOPPER_HZ_PER_POINT1_KPH	314
 #else
-	// watching straight at moving target!
-	// the doppler frequency is 44.4Hz / (km/h)
-
-	// each frequency bin in fft will be:
-	//   42688 SPS / 4096 bins = delta 10.421Hz
-	//   => 0.23km/h per freq. bin.
-	speed = (speed * 104) / 444;
-
-	// at 240 km/h, the max frequency is 7850Hz
-	//   => bin 1022 would be max speed of 250.
-	if(out > 1022)
-		out = 1022;
-	// scale to full duty cycle
-	out *= PEAK_OUTPUT/1022;
+//  calculations for  0 degree to moving target:
+#   define DOPPER_HZ_PER_POINT1_KPH	444
 #endif
+
+#define HZ_PER_BIN			( 42688. / WAVESIZE )
+#define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPER_HZ_PER_POINT1_KPH/10.) )
+#define MAX_BIN_240KPH			( 240. / KPH_PER_BIN )
+
+	speed = (max_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPER_HZ_PER_POINT1_KPH;
+	if(out > MAX_BIN_240KPH)
+		out = MAX_BIN_240KPH;
+	out *= PEAK_OUTPUT / MAX_BIN_240KPH;
 
 #if 1
 	printf("PEAK: bin %4d mag %04x speed %u km/h out 0x%04x\n", max_index, max_mag, speed, out);
