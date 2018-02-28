@@ -299,8 +299,8 @@ static void process_waveform(void)
 
 	int16_t *wav = (int16_t*)waveform_to_process;
 	int16_t max_mag=0, max_index=0;
-	// NOTE: when direction of movement is required, use i=4..WAVESIZE-4 !
-	for(i = 4; i < WAVESIZE/2; ++i) { // omit DC (index 0-3)
+	// NOTE: when direction of movement is required, use i=20..WAVESIZE-20 !
+	for(i = 20; i < WAVESIZE/2; ++i) { // omit DC (index 0-3)
 		int16_t mag = wav[2*i+0] * wav[2*i+0]  +  wav[2*i+1] * wav[2*i+1];
 		if(max_mag < mag) {
 			max_mag = mag;
