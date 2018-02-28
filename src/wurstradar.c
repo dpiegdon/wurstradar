@@ -336,7 +336,7 @@ static void process_waveform(void)
 	out *= PEAK_OUTPUT / MAX_BIN_240KPH;
 
 #if 1
-	printf("PEAK: bin %4d mag %04x speed %u km/h out 0x%04x\n", max_index, max_mag, speed, out);
+	printf("fft bin %4d mag^2 %04x speed %u kph out 0x%04x\n", max_index, max_mag, speed, out);
 #endif
 
 	pwm_output(out);
