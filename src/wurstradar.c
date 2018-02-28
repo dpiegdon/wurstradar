@@ -1,4 +1,5 @@
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -180,8 +181,8 @@ static void adc_setup(void)
 	adc_set_resolution(ADC1, ADC_CR1_RES_12BIT);
 	adc_set_resolution(ADC2, ADC_CR1_RES_12BIT);
 
-	adc_set_left_aligned(ADC1);
-	adc_set_left_aligned(ADC2);
+	adc_set_right_aligned(ADC1);
+	adc_set_right_aligned(ADC2);
 
 	adc_set_regular_sequence(ADC1, ARRAY_SIZE(adc1_channels), adc1_channels);
 	adc_set_regular_sequence(ADC2, ARRAY_SIZE(adc2_channels), adc2_channels);
@@ -287,63 +288,37 @@ struct fft_length_config_entry {
 	const arm_cfft_instance_q15 * config;
 };
 
-static const struct fft_length_config_entry fft_length_config[] = {
-	{ .len = 16,	.config = &arm_cfft_sR_q15_len16   },
-	{ .len = 32,	.config = &arm_cfft_sR_q15_len32   },
-	{ .len = 64,	.config = &arm_cfft_sR_q15_len64   },
-	{ .len = 128,	.config = &arm_cfft_sR_q15_len128  },
-	{ .len = 256,	.config = &arm_cfft_sR_q15_len256  },
-	{ .len = 512,	.config = &arm_cfft_sR_q15_len512  },
-	{ .len = 1024,	.config = &arm_cfft_sR_q15_len1024 },
-	{ .len = 2048,	.config = &arm_cfft_sR_q15_len2048 },
-	{ .len = 4096,	.config = &arm_cfft_sR_q15_len4096 }
-};
-
-static uint32_t perform_fft(uint32_t * waveform, const uint32_t len)
-{
-	/* CMSIS DSP FFT requires power-of-two lenghts.
-	 * Hence, we create a LUT to select the correct initializer from */
-
-	uint32_t i;
-
-	for(i = 0; fft_length_config[i].len < len && len < ARRAY_SIZE(fft_length_config); ++i);
-
-	const arm_cfft_instance_q15 * fft_config = fft_length_config[i].config;
-
-	/* I understand waveform1/2 should have I and Q samples interleaved inside
-	 * each 32bit word once the ADC/DMA contraption is working with double-
-	 * buffering enabled.
-	 *
-	 * The CMSIS DSP FFT thingy requires just this - how convenient.
-	 * Thus, we may reinterprete those as little-endian int16_t and pass those
-	 * onto cfft function.
-	 */
-	arm_cfft_q15(fft_config, (q15_t*)waveform, 0, 0);
-
-	return fft_length_config[i].len;
-}
-
 static int16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
-#ifdef DEBUG
 	unsigned i;
-	printf("fft done %lu 16raw,mag:\n", dma_sample_todo);
-	for(i = 0; i < 16; ++i)
+#define PRINTCOUNT 32
+
+#if 0
+	printf("\nwav:\n");
+	for(i = 0; i < PRINTCOUNT; ++i)
 		printf(" %08lx\n", waveform_to_process[i]);
 #endif
 
-	/* let's obtain magnitude squares of fft */
-	uint32_t processed_len = perform_fft(waveform_to_process, dma_sample_todo);
-	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, processed_len);
+	assert(WAVESIZE == 4096);
+	arm_cfft_q15(&arm_cfft_sR_q15_len4096, (q15_t*)waveform_to_process, 0, 0);
 
-	/* now we need to find those local maxima inside the vector in an efficent
-	 * way.
-	 */
+#if 0
+	printf("\nfft complex:\n");
+	for(i = 0; i < PRINTCOUNT; ++i)
+		printf(" %08lx\n", waveform_to_process[i]);
+#endif
 
-	// FIXME
+	arm_cmplx_mag_squared_q15((q15_t*)waveform_to_process, waveform_magnitudes, WAVESIZE);
 
+#if 1
+	printf("\nfft mag:\n");
+	for(i = 0; i < PRINTCOUNT; ++i)
+		if(waveform_magnitudes[i] != 0)
+			printf(" %d: %04x\n", i, waveform_magnitudes[i]);
+#endif
 
+	// FIXME peakfinder
 
 	pwm_output(0);
 }
