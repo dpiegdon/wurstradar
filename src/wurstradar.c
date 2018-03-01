@@ -159,6 +159,7 @@ static void adc_setup(void)
 {
 	// Setup ADC1_IN0 on PA0 and ADC2_IN8 on PB0.
 	// sampling at ~42688 SPS.
+	// (actually should be 168/2 / 4 / 480 = 43750 SPS)
 	uint8_t adc1_channels[] = { ADC_CHANNEL0 };
 	uint8_t adc2_channels[] = { ADC_CHANNEL8 };
 
