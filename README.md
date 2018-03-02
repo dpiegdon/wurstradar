@@ -1,24 +1,28 @@
 
-STM32F429Discovery Pinout
-=========================
+Wurstradar
+==========
 
-Mögliches Pinout bei verwendung des Disco-Boards:
+Sausage radar. Neat doppler radar that fits into a sausage can.
 
-PA5: DAC  Channel 2
-PC3: ADC1 Channel 13
-PF6: ADC3 Channel 4
 
-(siehe `wurstradar_stm32f429_discovery.ioc`)
+Required hardware
+=================
 
-Links
-=====
+RSM2650 Radar movement alarm unit (this actuall is an Innosent IPS-265.pdf)
 
-* uGfx library for: `https://git.ugfx.io/uGFX/uGFX.git`
+ * `http://www.produktinfo.conrad.com/datenblaetter/500000-524999/506343-da-01-en-RADARBEWEGUNGSM__MOD__STEREO_4_75__5_25V.pdf`
+ * `https://www.innosent.de/fileadmin/media/dokumente/datasheets/IPS-265.pdf`
 
-* 1bitsy `https://1bitsy.org/` schematic: `https://github.com/1Bitsy/1bitsy-hardware/raw/master/1bitsy/v1.0d/1bitsy_schematic.pdf`
+1bitsy STM32F415 on a tiny breakout board
 
-* STM32F429Disco `http://www.st.com/en/evaluation-tools/32f429idiscovery.html`
+ * `https://1bitsy.org/`
 
-* Radarsensor: Dopplerradar 24GHz, IPS-265 von innocent: `http://www.innosent.de/fileadmin/media/dokumente/datasheets/IPS-265.pdf` `https://www.innosent.de/radarsensoren/ips-series/ips-265/` NOTE: 5V input, IF-out -300 — +300mV. GIBTS LEIDER NICHT MEHR BEI CONRAD!
+Used Simpson Voltmeter 5V as analog dial.
 
-* Alt Radarsensor: RSM2650 (bei Conrad), nahezu identisch in der Handhabung. `https://produktinfo.conrad.com/datenblaetter/500000-524999/506343-da-01-de-RADARBEWEGUNGSM__MOD__STEREO_4_75__5_25V.pdf`
+ * `https://www.google.de/search?q=simpson+5v+ac&tbm=isch`
+
+Generic powerbrick to 5V
+
+ * e.g. TI TPSM84205
+
+
