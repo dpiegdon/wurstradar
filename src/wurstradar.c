@@ -290,7 +290,6 @@ struct fft_length_config_entry {
 	const arm_cfft_instance_q15 * config;
 };
 
-//static int16_t waveform_magnitudes[WAVESIZE];
 static void process_waveform(void)
 {
 	unsigned i;
