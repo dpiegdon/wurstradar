@@ -228,10 +228,6 @@ void dma2_stream0_isr(void)
 static void pwm_setup(void)
 {
 	// configure PWM on TIM4CHAN1 on PB6
-	// frequency is ~143Hz (should be ~160...)
-
-	// https://github.com/1Bitsy/1bitsy-examples/blob/master/examples/1bitsy/pwmblink/pwmblink.c
-
 	gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6);
 	gpio_set_af(GPIOB, GPIO_AF2, GPIO6);
 
@@ -241,13 +237,13 @@ static void pwm_setup(void)
 	// - Alignment edge
 	// - Direction up
 	timer_set_mode(TIM4, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
-	// Prescaler: divide the input clock (half of the core clock aka 84MHz) by 16)
-	timer_set_prescaler(TIM4, 8);
+	// Prescaler for input clock (half of the core clock aka 84MHz)
+	timer_set_prescaler(TIM4, 1);
 	// Enable preload.
 	timer_disable_preload(TIM4);
 	// Continous mode.
 	timer_continuous_mode(TIM4);
-	// Period (~160Hz). (84MHz/8/65535)
+	// Period (84MHz/1/65535) = ~ 1282 Hz
 	timer_set_period(TIM4, 0xFFFF);
 	// Disable outputs.
 	timer_disable_oc_output(TIM4, TIM_OC1);
@@ -315,8 +311,7 @@ static void process_waveform(void)
 
 
 // duty cycle value that will show up as peak on analog out
-//#define PEAK_OUTPUT 0xE150
-#define PEAK_OUTPUT 0xCFD0
+#define PEAK_OUTPUT 0xeb00
 
 #if 0
 //  calculations for 45 degree to moving target:
