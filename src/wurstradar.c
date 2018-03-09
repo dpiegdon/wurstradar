@@ -17,6 +17,8 @@
 #include <arm_math.h>
 #include <arm_const_structs.h>
 
+#define MIN(x,y) ( (x) < (y) ? (x) : (y) )
+
 int _write(int file, char *ptr, int len);
 
 static void clock_setup(void)
@@ -290,28 +292,26 @@ static void process_waveform(void)
 {
 	unsigned i;
 
+	// get FFT
 	assert(WAVESIZE == 4096);
 	arm_cfft_q15(&arm_cfft_sR_q15_len4096, (q15_t*)waveform_to_process, 0, 1);
 
+	// find / track peak
 	int16_t *wav = (int16_t*)waveform_to_process;
-	int16_t max_mag=0, max_index=0;
-	// NOTE: when direction of movement is required, use i=20..WAVESIZE-20 !
-	for(i = 20; i < WAVESIZE/2; ++i) { // omit DC (index 0-3)
+	int16_t peak_magnitude=0, peak_index=0;
+	// omit DC when peakfinding (index ~ 0-19)
+	// we only check the lower half of the FFT, thus ignore the direction
+	// of motion. if direction of movement is required, use i=20..WAVESIZE-20
+	for(i = 20; i < WAVESIZE/2; ++i) {
 		int16_t mag = wav[2*i+0] * wav[2*i+0]  +  wav[2*i+1] * wav[2*i+1];
-		if(max_mag < mag) {
-			max_mag = mag;
-			max_index = i;
+		if(peak_magnitude < mag) {
+			peak_magnitude = mag;
+			peak_index = i;
 		}
 	}
 
-	unsigned int speed = max_index;
-	uint16_t out = max_index;
-	if(max_mag < 0x10)
-		out = 0;
-
-
 // duty cycle value that will show up as peak on analog out
-#define PEAK_OUTPUT 0xeb00
+#define PEAK_DUTY 0xeb00
 
 #if 0
 //  calculations for 45 degree to moving target:
@@ -325,16 +325,15 @@ static void process_waveform(void)
 #define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPER_HZ_PER_POINT1_KPH/10.) )
 #define MAX_BIN_240KPH			( 240. / KPH_PER_BIN )
 
-	speed = (max_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPER_HZ_PER_POINT1_KPH;
-	if(out > MAX_BIN_240KPH)
-		out = MAX_BIN_240KPH;
-	out *= PEAK_OUTPUT / MAX_BIN_240KPH;
+	unsigned int speed = (peak_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPER_HZ_PER_POINT1_KPH;
+	uint16_t duty = MIN( (peak_magnitude < 0x10) ? 0 : peak_index , MAX_BIN_240KPH );
+	duty *= PEAK_DUTY / MAX_BIN_240KPH;
 
 #if 1
-	printf("fft bin %4d mag^2 %04x speed %u kph out 0x%04x\n", max_index, max_mag, speed, out);
+	printf("fft bin %4d mag^2 %04x speed %u kph duty 0x%04x\n", peak_index, peak_magnitude, speed, duty);
 #endif
 
-	pwm_output(out);
+	pwm_output(duty);
 }
 
 int main(void)
