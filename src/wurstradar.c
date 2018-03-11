@@ -240,12 +240,12 @@ static void pwm_setup(void)
 	// - Direction up
 	timer_set_mode(TIM4, TIM_CR1_CKD_CK_INT, TIM_CR1_CMS_EDGE, TIM_CR1_DIR_UP);
 	// Prescaler for input clock (half of the core clock aka 84MHz)
-	timer_set_prescaler(TIM4, 1);
+	timer_set_prescaler(TIM4, 32);
 	// Enable preload.
 	timer_disable_preload(TIM4);
 	// Continous mode.
 	timer_continuous_mode(TIM4);
-	// Period (84MHz/1/65535) = ~ 1282 Hz
+	// Period (84MHz/16/65535) = ~ 40 Hz
 	timer_set_period(TIM4, 0xFFFF);
 	// Disable outputs.
 	timer_disable_oc_output(TIM4, TIM_OC1);
