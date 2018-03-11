@@ -288,6 +288,34 @@ struct fft_length_config_entry {
 	const arm_cfft_instance_q15 * config;
 };
 
+uint16_t output_per_10kph[] = { // valid for 40Hz PWM
+	0x0000,	//   0 kph
+	0x0c94,	//  10
+	0x1441,	//  20
+	0x1928,	//  30
+	0x1e46,	//  40
+	0x239b,	//  50
+	0x28ef,	//  60
+	0x2ff8,	//  70
+	0x3627,	//  80
+	0x3d67,	//  90
+	0x443a,	// 100
+	0x4c1d,	// 110
+	0x53ca,	// 120
+	0x5c88,	// 130
+	0x6620,	// 140
+	0x7040,	// 150
+	0x7b05,	// 160
+	0x8541,	// 170
+	0x9021,	// 180
+	0x9b37,	// 190
+	0xa728,	// 200
+	0xb3f3,	// 210
+	0xc050,	// 220
+	0xcc41,	// 230
+	0xd900	// 240 kph
+};
+
 static void process_waveform(void)
 {
 	unsigned i;
@@ -310,30 +338,35 @@ static void process_waveform(void)
 		}
 	}
 
-// duty cycle value that will show up as peak on analog out
-#define PEAK_DUTY 0xeb00
-
 #if 0
 //  calculations for 45 degree to moving target:
-#   define DOPPER_HZ_PER_POINT1_KPH	314
+#   define DOPPLER_HZ_PER_POINT1_KPH	314
 #else
 //  calculations for  0 degree to moving target:
-#   define DOPPER_HZ_PER_POINT1_KPH	444
+#   define DOPPLER_HZ_PER_POINT1_KPH	444
 #endif
 
 #define HZ_PER_BIN			( 42688. / WAVESIZE )
-#define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPER_HZ_PER_POINT1_KPH/10.) )
-#define MAX_BIN_240KPH			( 240. / KPH_PER_BIN )
+#define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPLER_HZ_PER_POINT1_KPH/10.) )
+	unsigned int speed = (peak_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPLER_HZ_PER_POINT1_KPH;
 
-	unsigned int speed = (peak_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPER_HZ_PER_POINT1_KPH;
-	uint16_t duty = MIN( (peak_magnitude < 0x10) ? 0 : peak_index , MAX_BIN_240KPH );
-	duty *= PEAK_DUTY / MAX_BIN_240KPH;
+	unsigned int index_low  = speed/10;
+	if(index_low >= ARRAY_SIZE(output_per_10kph))
+		index_low = ARRAY_SIZE(output_per_10kph)-1;
+	unsigned int index_high = index_low+1;
+	if(index_high >= ARRAY_SIZE(output_per_10kph))
+		index_high = ARRAY_SIZE(output_per_10kph)-1;
+
+	uint16_t span_low  = output_per_10kph[index_low];
+	uint16_t span_high = output_per_10kph[index_high];
+	uint16_t delta = span_high - span_low;
+	uint16_t output = span_low + (delta * (speed % 10)) / 10;
 
 #if 1
-	printf("fft bin %4d mag^2 %04x speed %u kph duty 0x%04x\n", peak_index, peak_magnitude, speed, duty);
+	printf("fft bin %4d mag^2 %04x speed %u kph output 0x%04x\n", peak_index, peak_magnitude, speed, output);
 #endif
 
-	pwm_output(duty);
+	pwm_output(output);
 }
 
 int main(void)
