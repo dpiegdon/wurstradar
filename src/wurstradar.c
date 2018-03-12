@@ -348,12 +348,14 @@ static void process_waveform(void)
 		peak_index = 0;
 	}
 
-#if 0
+#if 1
 //  calculations for 45 degree to moving target:
 #   define DOPPLER_HZ_PER_POINT1_KPH	314
+#   define MEASUREMENT_DEGREE 45
 #else
 //  calculations for  0 degree to moving target:
 #   define DOPPLER_HZ_PER_POINT1_KPH	444
+#   define MEASUREMENT_DEGREE 0
 #endif
 
 #define HZ_PER_BIN			( 42688. / WAVESIZE )
@@ -385,6 +387,8 @@ int main(void)
 	platform_init();
 
 	printf("ETAGE5 WURSTRADAR\n\n");
+	printf("2018 by David, David, Frank, Iqbal, Manoel, Martin, Florian.\n");
+	printf("Configured for %d degree to moving target.\n", MEASUREMENT_DEGREE);
 
 	adc_start_conversion_regular(ADC1);
 	adc_start_conversion_regular(ADC2);
