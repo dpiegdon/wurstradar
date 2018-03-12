@@ -26,3 +26,10 @@ Generic powerbrick to 5V
  * e.g. TI TPSM84205
 
 
+Compiling
+=========
+
+Build libopencm3 first (`cd libopencm3; make`), then build in `src`.
+You can set the measurement angle and its proper doppler frequency via
+commandline: `make DOPPLER_HZ_PER_POINT1_KPH=314 MEASUREMENT_DEGREE=45`
+

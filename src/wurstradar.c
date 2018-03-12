@@ -17,7 +17,25 @@
 #include <arm_math.h>
 #include <arm_const_structs.h>
 
-#define MIN(x,y) ( (x) < (y) ? (x) : (y) )
+
+
+#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+
+#define stringify(s) xstringify(s)
+#define xstringify(s) #s
+
+#ifndef DOPPLER_HZ_PER_POINT1_KPH
+# warning no defaults supplied for doppler hz/angle. using 0 degree angle.
+// at 0 degree, doppler freq is 44.4Hz/kph. at 45 degree its 31.4Hz/kph
+# define DOPPLER_HZ_PER_POINT1_KPH 444
+# define MEASUREMENT_DEGREE 0
+#endif
+
+#define WAVESIZE 4096
+#define HZ_PER_BIN			( 42688. / WAVESIZE )
+#define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPLER_HZ_PER_POINT1_KPH/10.) )
+
+
 
 int _write(int file, char *ptr, int len);
 
@@ -120,9 +138,6 @@ int _write(int file, char *ptr, int len)
 	return -1;
 }
 
-#define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
-
-#define WAVESIZE 4096
 static uint32_t waveform1[WAVESIZE];
 static uint32_t waveform2[WAVESIZE];
 static uint32_t * waveform_to_process = NULL;
@@ -348,18 +363,6 @@ static void process_waveform(void)
 		peak_index = 0;
 	}
 
-#if 1
-//  calculations for 45 degree to moving target:
-#   define DOPPLER_HZ_PER_POINT1_KPH	314
-#   define MEASUREMENT_DEGREE 45
-#else
-//  calculations for  0 degree to moving target:
-#   define DOPPLER_HZ_PER_POINT1_KPH	444
-#   define MEASUREMENT_DEGREE 0
-#endif
-
-#define HZ_PER_BIN			( 42688. / WAVESIZE )
-#define KPH_PER_BIN			( (HZ_PER_BIN) / (DOPPLER_HZ_PER_POINT1_KPH/10.) )
 	unsigned int speed = (peak_index * (int)(HZ_PER_BIN*10) ) / (int)DOPPLER_HZ_PER_POINT1_KPH;
 
 	unsigned int index_low  = speed/10;
@@ -386,9 +389,12 @@ int main(void)
 {
 	platform_init();
 
-	printf("ETAGE5 WURSTRADAR\n\n");
-	printf("2018 by David, David, Frank, Iqbal, Manoel, Martin, Florian.\n");
-	printf("Configured for %d degree to moving target.\n", MEASUREMENT_DEGREE);
+	printf( "\n"
+		"ETAGE5 WURSTRADAR\n"
+		"Version " stringify(VERSION) " (git " stringify(GIT_VERSION) ")\n"
+		"2018 by David, David, Frank, Iqbal, Manoel, Martin, Florian.\n"
+		"Configured for " stringify(MEASUREMENT_DEGREE) " degree to moving target.\n"
+		"\n");
 
 	adc_start_conversion_regular(ADC1);
 	adc_start_conversion_regular(ADC2);
