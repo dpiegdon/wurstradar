@@ -319,6 +319,7 @@ uint16_t output_per_10kph[] = { // valid for 40Hz PWM
 static void process_waveform(void)
 {
 	unsigned i;
+	unsigned toward;
 
 	// get FFT
 	assert(WAVESIZE == 4096);
@@ -327,10 +328,7 @@ static void process_waveform(void)
 	// find / track peak
 	int16_t *wav = (int16_t*)waveform_to_process;
 	int16_t peak_magnitude=0, peak_index=0;
-	// omit DC when peakfinding (index ~ 0-19)
-	// we only check the lower half of the FFT, thus ignore the direction
-	// of motion. if direction of movement is required, use i=20..WAVESIZE-20
-	for(i = 20; i < WAVESIZE/2; ++i) {
+	for(i = 20; i < WAVESIZE-20; ++i) {
 		int16_t mag = wav[2*i+0] * wav[2*i+0]  +  wav[2*i+1] * wav[2*i+1];
 		if(peak_magnitude < mag) {
 			peak_magnitude = mag;
@@ -338,8 +336,17 @@ static void process_waveform(void)
 		}
 	}
 
-	if(peak_magnitude < 0x10)
+	if(peak_index >= WAVESIZE/2) {
+		toward = 1;
+		peak_index = WAVESIZE - peak_index;
+	} else {
+		toward = 0;
+	}
+
+	if(peak_magnitude < 0x10) {
+		toward = 1;
 		peak_index = 0;
+	}
 
 #if 0
 //  calculations for 45 degree to moving target:
@@ -366,7 +373,8 @@ static void process_waveform(void)
 	uint16_t output = span_low + (delta * (speed % 10)) / 10;
 
 #if 1
-	printf("fft bin %4d mag^2 %04x speed %u kph output 0x%04x\n", peak_index, peak_magnitude, speed, output);
+	printf("fft bin %4d mag^2 %04x speed %c%u kph output 0x%04x\n",
+			peak_index, peak_magnitude, toward ? '+' : '-', speed, output);
 #endif
 
 	pwm_output(output);
