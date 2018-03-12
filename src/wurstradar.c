@@ -338,6 +338,9 @@ static void process_waveform(void)
 		}
 	}
 
+	if(peak_magnitude < 0x10)
+		peak_index = 0;
+
 #if 0
 //  calculations for 45 degree to moving target:
 #   define DOPPLER_HZ_PER_POINT1_KPH	314
