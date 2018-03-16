@@ -409,6 +409,7 @@ int main(void)
 			pb14_toggle();
 			pb15_toggle();
 			led_toggle();
+			__WFI();
 		}
 	}
 
