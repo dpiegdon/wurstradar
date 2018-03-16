@@ -45,14 +45,24 @@ Required software
 Only `arm-none-eabi-gcc`.
 
 
-Further Plans
-=============
+Further plans and ideas
+=======================
 
-FMCW / Range Doppler:
+ * FMCW / Range Doppler (minor hardware change, complex firmware changes)
 
-The current frontend (RSM2650) can be replaced with a frontend that supports a tuning
-voltage. Then, FMCW and Range-Doppler could be done. The tuning voltage could be supplied
-with the STM32 DAC, which already has some support code in the git history.
+   The current antenna module (RSM2650) can be replaced with a module that supports a tuning
+   voltage. Then, FMCW and Range-Doppler could be done. The tuning voltage could be supplied
+   with the STM32 DAC, which already has some support code in the git history.
+
+ * Improved signal quality and range (complex hardware changes)
+
+   The analog frontend currently is a simple opamp amplifier with decoupling and biasing.
+   Options are to increase the amplification, pick better opamps or dedicated LNAs.
+   Automatic gain might me an option with that.
+
+ * USB waveform output (simple firmware changes)
+
+   Output both I and Q as a data stream via USB, so a connected computer can use them.
 
 
 Compiling
