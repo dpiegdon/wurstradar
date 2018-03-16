@@ -64,17 +64,17 @@ Team
 
  * David Owczarek - `fixme` - hardware
 
- * David R. Piegdon - @dpiegdon `dgit at piegdon dot de` - concept, firmware, hardware and assembly
+ * David R. Piegdon - [@dpiegdon](https://github.com/dpiegdon) - concept, firmware, hardware and assembly
 
  * Florian Schwanse - `florian at schwanse dot de` - 3d printed parts and case
 
- * Frank Terbeck - @ft `ft at bewatermyfriend dot org` - concept and hardware
+ * Frank Terbeck - [@ft](https://github.com/ft) - concept and hardware
 
  * Iqbal Maraqa - `iqbal underscore maraqa at hotmail dot com` - analog dial face
 
- * Manoel Brunnen - @mbrunnen `manoel dot brunnen at gmail dot com` - firmware
+ * Manoel Brunnen - [@mbrunnen](https://github.com/mbrunnen) - firmware
 
- * Martin Gritzan - @mgritz `martin dot gritzan at gmail dot com` - firmware
+ * Martin Gritzan - [@mgritz](https://github.com/mgritz) - firmware
 
  * Möffi ... - `spsm at mailbox dot org` - 3d printed parts
 
