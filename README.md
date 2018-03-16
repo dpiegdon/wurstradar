@@ -12,25 +12,6 @@ as it also is meant to be mounted on a motorcycle as an alternative to the speed
 ![PCB](https://github.com/dpiegdon/wurstradar/blob/master/pictures/photos/pcb.jpg?raw=true)
 
 
-Team
-====
-
- * David Owczarek - `fixme` - hardware
-
- * David R. Piegdon - `dgit at piegdon dot de` - concept, firmware, hardware and assembly
-
- * Florian Schwanse - `florian at schwanse dot de` - 3d printed parts and case
-
- * Frank Terbeck - `ft at bewatermyfriend dot org` - concept and hardware
-
- * Iqbal Maraqa - `iqbal underscore maraqa at hotmail dot com` - analog dial face
-
- * Manoel Brunnen - `manoel dot brunnen at gmail dot com` - firmware
-
- * Martin Gritzan - `martin dot gritzan at gmail dot com` - firmware
-
- * Möffi ... - `spsm at mailbox dot org` - 3d printed parts
-
 Required hardware
 =================
 
@@ -76,5 +57,25 @@ you can set the measurement angle and its proper doppler frequency via
 commandline: `make DOPPLER_HZ_PER_POINT1_KPH=314 MEASUREMENT_DEGREE=45`
 
 Flash it to the 1bitsy. E.g. with a Black Magic Probe.
+
+
+Team
+====
+
+ * David Owczarek - `fixme` - hardware
+
+ * David R. Piegdon - @dpiegdon `dgit at piegdon dot de` - concept, firmware, hardware and assembly
+
+ * Florian Schwanse - `florian at schwanse dot de` - 3d printed parts and case
+
+ * Frank Terbeck - @ft `ft at bewatermyfriend dot org` - concept and hardware
+
+ * Iqbal Maraqa - `iqbal underscore maraqa at hotmail dot com` - analog dial face
+
+ * Manoel Brunnen - @mbrunnen `manoel dot brunnen at gmail dot com` - firmware
+
+ * Martin Gritzan - @mgritz `martin dot gritzan at gmail dot com` - firmware
+
+ * Möffi ... - `spsm at mailbox dot org` - 3d printed parts
 
 
