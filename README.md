@@ -45,6 +45,16 @@ Required software
 Only `arm-none-eabi-gcc`.
 
 
+Further Plans
+=============
+
+FMCW / Range Doppler:
+
+The current frontend (RSM2650) can be replaced with a frontend that supports a tuning
+voltage. Then, FMCW and Range-Doppler could be done. The tuning voltage could be supplied
+with the STM32 DAC, which already has some support code in the git history.
+
+
 Compiling
 =========
 
@@ -76,6 +86,6 @@ Team
 
  * Martin Gritzan - [@mgritz](https://github.com/mgritz) - firmware
 
- * Möffi ... - `spsm at mailbox dot org` - 3d printed parts
+ * Sebastian Moenninghoff - `spsm at mailbox dot org` - 3d printed parts
 
 
