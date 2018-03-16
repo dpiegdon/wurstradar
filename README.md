@@ -5,6 +5,8 @@ Sausage radar. Simple doppler radar that fits into a sausage can.
 Named after "Wurstblinker" from the german movie [Werner](https://www.youtube.com/watch?v=n31j2_dkaCo),
 as it also is meant to be mounted on a motorcycle as an alternative to the speedometer.
 
+![DataFlow](https://github.com/dpiegdon/wurstradar/blob/master/pictures/dataflow.png?raw=true)
+
 ![Prototype](https://github.com/dpiegdon/wurstradar/blob/master/pictures/photos/prototype.jpg?raw=true)
 
 ![PCB](https://github.com/dpiegdon/wurstradar/blob/master/pictures/photos/pcb.jpg?raw=true)
