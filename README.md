@@ -82,7 +82,7 @@ Flash it to the 1bitsy. E.g. with a Black Magic Probe.
 Team
 ====
 
- * David Owczarek - `fixme` - hardware
+ * David Owczarek - `david dot owczarek at googlemail dot com` - hardware
 
  * David R. Piegdon - [@dpiegdon](https://github.com/dpiegdon) - concept, firmware, hardware and assembly
 
