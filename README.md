@@ -17,7 +17,7 @@ Required hardware
 
 ![TestSetup](https://github.com/dpiegdon/wurstradar/blob/master/pictures/photos/testsetup.jpg?raw=true)
 
-RSM2650 Radar movement alarm unit (this actuall is an Innosent IPS-265.pdf)
+RSM2650 Radar movement alarm unit (this probably is an Innosent IPS-265)
 
  * `http://www.produktinfo.conrad.com/datenblaetter/500000-524999/506343-da-01-en-RADARBEWEGUNGSM__MOD__STEREO_4_75__5_25V.pdf`
  * `https://www.innosent.de/fileadmin/media/dokumente/datasheets/IPS-265.pdf`
