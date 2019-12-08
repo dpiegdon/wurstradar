@@ -237,27 +237,7 @@ Wire Wire Line
 Connection ~ 2950 9050
 Wire Wire Line
 	1800 9050 2350 9050
-Wire Wire Line
-	2350 9050 2350 8700
-Wire Wire Line
-	2350 8700 2550 8700
 Connection ~ 2350 9050
-Text Notes 2950 9050 0    60   ~ 0
-source
-Text Notes 2950 8550 0    60   ~ 0
-drain
-Text Notes 2350 8700 0    60   ~ 0
-gate
-Text Notes 2700 8800 0    60   ~ 0
-N-chan mosfet\nLR3636
-Wire Notes Line
-	2550 8550 2550 8950
-Wire Notes Line
-	2550 8950 3650 8950
-Wire Notes Line
-	3650 8950 3650 8550
-Wire Notes Line
-	3650 8550 2550 8550
 Wire Wire Line
 	1800 3800 1600 3800
 Wire Wire Line
@@ -504,4 +484,23 @@ F 3 "~" H 1950 3800 50  0001 C CNN
 	1    1950 3800
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	2350 9050 2350 8750
+Wire Wire Line
+	2350 8750 2650 8750
+$Comp
+L pspice:MNMOS M?
+U 1 1 5DED53BF
+P 2850 8750
+F 0 "M?" H 3138 8796 50  0000 L CNN
+F 1 "N-Channel MOSFET LR3636" H 3138 8705 50  0000 L CNN
+F 2 "" H 2825 8750 50  0001 C CNN
+F 3 "~" H 2825 8750 50  0001 C CNN
+	1    2850 8750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3050 8950 3050 9050
+Wire Wire Line
+	3050 9050 2950 9050
 $EndSCHEMATC
